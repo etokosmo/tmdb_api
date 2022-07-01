@@ -1,13 +1,15 @@
-from own_db_helpers import load_data
 from collections import OrderedDict
 
-def find_my_film(keyword, films_data):
-    for film in films_data:
+from own_db_helpers import load_films
+
+
+def find_user_film(keyword, films):
+    for film in films:
         if keyword == film['original_title']:
             return film
-    return None
 
-def get_rating(my_film, films_data, num_to_recommend=8):
+
+def get_recommendation_films(compared_film, films, recommend_amount=8):
     params = {
         'belongs_to_collection': 1000,
         'original_language': 300,
@@ -15,33 +17,36 @@ def get_rating(my_film, films_data, num_to_recommend=8):
         'genres': 500
     }
     rating = {}
-    for film in films_data:
+    for film in films:
         film_rate = 0
         for parameter in params:
-            if film[parameter] == my_film[parameter]:
+            if film[parameter] == compared_film[parameter]:
                 film_rate += params[parameter]
         rating[film['original_title']] = film_rate
-    del rating[my_film['original_title']]
-    rating = OrderedDict(sorted(rating.items(), key=lambda t: t[1], reverse=True))
+    rating.pop(compared_film['original_title'], None)
+    rating = OrderedDict(
+        sorted(rating.items(), key=lambda t: t[1], reverse=True))
     final_recommendation = []
     for film in rating:
-        if len(final_recommendation) > num_to_recommend:
+        if len(final_recommendation) > recommend_amount:
             break
         final_recommendation.append(film)
     return final_recommendation
 
-if __name__ == '__main__':
+
+def main():
     path = input('Enter path to DataBase:')
-    films_data = load_data(path)
-    if not films_data:
-        print('File not found, sorry...')
-        raise SystemExit
+    films = load_films(path)
+    if not films:
+        raise FileNotFoundError("File not found, sorry...")
     keyword = input('Enter film to search for:')
-    my_film = find_my_film(keyword, films_data)
-    if not my_film:
-        print('No such film in FilmsDB')
-        raise SystemExit
-    recommendation = get_rating(my_film, films_data)
-    for film in sorted(recommendation):
+    user_film = find_user_film(keyword, films)
+    if not user_film:
+        raise FileNotFoundError("No such film in FilmsDB")
+    recommendation_films = get_recommendation_films(user_film, films)
+    for film in sorted(recommendation_films):
         print(film)
 
+
+if __name__ == '__main__':
+    main()

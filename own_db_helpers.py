@@ -1,9 +1,10 @@
 import json
 import os
 
-def load_data(path):
+
+def load_films(path):
     if not os.path.exists(path):
         return None
-    with open(path, mode='r', encoding='utf-8') as my_file:
-        films_data = json.load(my_file)
-        return films_data
+    with open(path, mode='r', encoding='utf-8') as films_file:
+        films = json.load(films_file)
+        return films
